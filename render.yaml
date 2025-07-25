@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: homeDYbot
+    env: python
+    plan: free
+    buildCommand: ""
+    startCommand: python homeDnYtrade.py
+    envVars:
+      - key: TELEGRAM_TOKEN
+        sync: false
