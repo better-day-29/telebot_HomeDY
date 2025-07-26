@@ -1,10 +1,10 @@
 services:
-  - type: web
+  - type: worker
     name: homeDYbot
     env: python
     plan: free
-    buildCommand: ""
-    startCommand: python homeDnYtrade.py
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python homeDnYtrade.py"
     envVars:
       - key: TELEGRAM_TOKEN
         sync: false
