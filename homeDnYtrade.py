@@ -1,5 +1,6 @@
 import sys
 import os
+import asyncio
 sys.stdout.reconfigure(encoding='utf-8')
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
@@ -103,7 +104,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_step[user_id] = "step4"
 
         if data == "country_other_custom":
-            # Nếu chọn Other, bỏ qua phần "Most of my members..." và đi thẳng
             await send_crypto_forex_question(query)
         else:
             country_map = {
@@ -120,10 +120,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             await send_crypto_forex_question(query)
 
-    #khi chọn crypto
     elif data == "experience_crypto1":
         user_step[user_id] = "step5"
-        user_data.setdefault(user_id, {})["type"] ="Crypto"
+        user_data.setdefault(user_id, {})["type"] = "Crypto"
         keyboard = [
             [InlineKeyboardButton("Binance", callback_data="experience_bnb"),
              InlineKeyboardButton("Bybit", callback_data="experience_bb")]
@@ -132,6 +131,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Choose an exchange you are not registered with!",
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
+
     elif data == "experience_bnb":
         user_step[user_id] = "finished"
         user_data.setdefault(user_id, {})["broker"] = "Binance"
@@ -152,18 +152,18 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.message.reply_text("Remember!\nWe will check the system to make sure you have completed all the steps before we can approve you as a VIP.")
         await query.message.reply_text("✔️Enter your UID if you are finished!")
 
-    #khi chọn forex
     elif data == "experience_forex1":
         user_step[user_id] = "step5"
         user_data.setdefault(user_id, {})["type"] = "Forex"
         keyboard = [
             [InlineKeyboardButton("Exness", callback_data="experience_exness"),
-             InlineKeyboardButton("FBS", callback_data="experience_fbs"),]
+             InlineKeyboardButton("FBS", callback_data="experience_fbs")]
         ]
         await query.message.reply_text(
             "Choose a broker you are not registered with!",
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
+
     elif data == "experience_exness":
         user_step[user_id] = "finished"
         user_data.setdefault(user_id, {})["broker"] = "Exness"
@@ -220,9 +220,16 @@ async def block_user_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=ADMIN_ID, text=text)
 
 # --- CHẠY BOT ---
-app = ApplicationBuilder().token(TOKEN).build()
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CallbackQueryHandler(button_handler))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, block_user_input))
+async def main():
+    app = ApplicationBuilder().token(TOKEN).build()
 
-app.run_polling()
+    await app.bot.delete_webhook(drop_pending_updates=True)
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(button_handler))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, block_user_input))
+
+    await app.run_polling()
+
+if __name__ == "__main__":
+    asyncio.run(main())
