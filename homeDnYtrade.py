@@ -21,7 +21,7 @@ ADMIN_ID = 2143651307
 user_step = {}
 user_data = {}
 
-# --- START ---
+# Start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     user_step[user_id] = "start"
