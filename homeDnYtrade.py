@@ -16,6 +16,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 TOKEN = os.getenv("TELEGRAM_TOKEN")
+if not TOKEN:
+    raise ValueError("TELEGRAM_TOKEN is not set in environment variables.")
 ADMIN_ID = 2143651307
 
 user_step = {}
