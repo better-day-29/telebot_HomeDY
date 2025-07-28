@@ -25,20 +25,16 @@ user_data = {}
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     user_step[user_id] = "start"
-
     await update.message.reply_text(
         "Hey! I can help you earn 10$ per day if you have discipline\n\n"
         "🚨Answer a few questions below to join the VIP group!"
     )
-
     keyboard = [[InlineKeyboardButton("YES", callback_data="experience_yes")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-
     await update.message.reply_text(
         "Do you have any trading experience?📊",
         reply_markup=reply_markup
     )
-
 # --- BUTTON HANDLER ---
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -203,43 +199,38 @@ async def block_user_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message.text
     user = update.message.from_user
 
+    #kiểm tra xem người dùng hoàn tất mọi bước chưa
     if user_step.get(user_id) != "finished":
         await update.message.reply_text("❗Please complete all steps before submitting your UID.")
         return
 
+    # Thông báo xác nhận đã nhận được UID
     await update.message.reply_text("✅ Thank you! Please wait while we verify your account for VIP access.")
     info = user_data.get(user_id, {})
     text = (
-        f"🆕 New UID submitted:\n\n"
+        f"🆕 New UID gửi đến này:\n\n"
         f"👤 Name: {user.first_name} (@{user.username or 'no username'})\n"
         f"📊 Type: {str(info.get('type', 'N/A'))}\n"
         f"🏦 Broker: {str(info.get('broker', 'N/A'))}\n"
         f"🆔 User ID: {user.id}\n"
-        f"📨 UID Message: {message}"
+        f"📨 UID của nó: {message}"
     )
     await context.bot.send_message(chat_id=ADMIN_ID, text=text)
 
 # --- CHẠY BOT ---
 async def main():
     app = ApplicationBuilder().token(TOKEN).build()
-
+    #xóa webhook
     await app.bot.delete_webhook(drop_pending_updates=True)
-
+    #thêm các handler của bạn vào
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(button_handler))
+    #handler này dành cho người gửi UID
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, block_user_input))
-
+    #chạy vòng lặp
     await app.run_polling()
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except RuntimeError as e:
-        if "event loop is already running" in str(e):
-            import nest_asyncio
-            nest_asyncio.apply()
-            loop = asyncio.get_event_loop()
-            loop.create_task(main())
-            loop.run_forever()
-        else:
-            raise
+    import nest_asyncio
+    nest_asyncio.apply()
+    asyncio.run(main())
